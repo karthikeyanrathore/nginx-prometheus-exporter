@@ -1,0 +1,14 @@
+---
+
+version: "3.0"
+
+
+services:
+
+  nginx-client:
+    image: nginx:1.22.1
+    ports:
+      - 8080:8080
+      - 6161:80
+    volumes:
+      - ./nginx/status.conf:/etc/nginx/conf.d/status.conf
