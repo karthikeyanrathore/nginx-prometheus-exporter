@@ -30,10 +30,10 @@ func main() {
     targetPath := fmt.Sprintf("/status")
 
     // Todo: include Flags
-    fmt.Println("Nginx Prometheus Exporter")
+    log.Printf("Nginx Prometheus Exporter")
 
     TARGET_NGINX_URI := fmt.Sprintf("http://%s:%d%s", targetHost, targetPort, targetPath)
-    nginxStats := func() (int) {
+    nginxStats := func() ([]exporter.NginxStub) {
         netClient := &http.Client{
             Timeout: time.Second * 10,
         }
@@ -47,17 +47,18 @@ func main() {
             log.Fatalf("io.ReadAll error: %s", err)
         }
         r := bytes.NewReader(body)
-        exporter.ScanNginxStats(r)
-        return 0
+        return exporter.ScanNginxStats(r)
     }
-    // fmt.Println(nginxStats())
-    nginxStats()
+    nginx_exp := exporter.NewNginxCollector(nginxStats)
+    // x := nginxStats()
+    // fmt.Println(x)
     reg := prometheus.NewRegistry()
+    reg.MustRegister(nginx_exp)
 
     promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
     http.Handle("/metrics", promHandler )
 
     // http.HandleFunc("/", HealthCheck)
-    log.Printf("starting nginx exporter on %s/metrics", exporterPort)
+    log.Printf("starting nginx exporter running on %s/metrics", exporterPort)
     http.ListenAndServe(exporterPort, nil)
 }
